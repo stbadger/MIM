@@ -49,7 +49,7 @@ if ($Logging -or $Reset){
     }
 }
 
-# Array containing event codes to check for, additional event codes can be added.
+# Arrays containing success and fail event codes to check for, additional event codes can be added.
 $goodCodes = @(2100, 2201, 2302)
 $badCodes = @(4003, 4004, 4005, 6002, 6004, 6005, 6006, 6007, 4100, 4101)
 
@@ -70,8 +70,8 @@ try {
     # Pauses script to allow event codes to populate.
     Start-Sleep -Seconds 5
 
-    # Checks event log for events that match event codes stored in arrays and outputs test results.
     try {
+        # Checks event log for identified success events and outputs test results.
         $goodEvents = Get-EventLog -LogName Application | Where-Object { 
             $goodCodes -contains $_.EventId -and $_.TimeGenerated -gt $resetTime
         }
@@ -88,6 +88,7 @@ try {
             Write-Host "No relevant successful event codes were found." -ForegroundColor Red
         }
 
+        # Checks event log for identified fail events and outputs test results.
         $badEvents = Get-EventLog -LogName Application | Where-Object { 
             $badCodes -contains $_.EventId -and $_.TimeGenerated -gt $resetTime
         }
