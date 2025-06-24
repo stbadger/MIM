@@ -1,6 +1,5 @@
 param(
-    [switch]$Logging,
-    [switch]$Reset
+    [switch]$Logging
 )
 
 # Updates registry path to enable PCNS verbose logging
@@ -22,8 +21,20 @@ if ($Logging) {
             if($currentValueData -ne $registryValueData){
                 Set-ItemProperty -Path $registryPath -Name $registryValueName -Value $registryValueData
                 Write-Host "Registry value updated successfully to enable PCNS verbose logging" -ForegroundColor Green
+
+                # Resets the PCNS service to apply registry value change
+                $ServiceName = "PCNSSVC"
+                try {
+                    Write-Host "Stopping the service: $ServiceName"
+                    Stop-Service -Name $ServiceName -Force
+                    Write-Host "Starting the service: $ServiceName"
+                    Start-Service -Name $ServiceName
+                    Write-Host "Service $ServiceName has been reset successfully" -ForegroundColor Green
+                } catch {
+                    Write-Host "An error occurred while restarting the PCNS service" -ForegroundColor Red
+                }
             } else {
-                Write-Host "Registry value to enable PCNS verbose logging already exists"
+                Write-Host "Registry value to enable PCNS verbose logging already exists" -ForegroundColor Yellow
             }
         } catch {
         Write-Host "An error occurred updating the registry value to enable PCNS verbose logging" -ForegroundColor Red
@@ -33,22 +44,6 @@ if ($Logging) {
         Write-Host "An error occurred creating the registry path to enable PCNS logging" -ForegroundColor Red
     }
 }
-
-# Resets the PCNS service to apply registry value change
-if ($Logging -or $Reset){
-    $ServiceName = "PCNSSVC"
-
-    try {
-        Write-Host "Stopping the service: $ServiceName"
-        Stop-Service -Name $ServiceName -Force
-        Write-Host "Starting the service: $ServiceName"
-        Start-Service -Name $ServiceName
-        Write-Host "Service $ServiceName has been reset successfully" -ForegroundColor Green
-    } catch {
-        Write-Host "An error occurred while restarting the PCNS service" -ForegroundColor Red
-    }
-}
-
 
 # Prompts user to enter username and password. 
 $username = Read-Host "Enter the username for which you want to reset the password"
