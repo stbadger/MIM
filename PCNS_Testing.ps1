@@ -92,6 +92,7 @@ try {
     Write-Host "An error occurred while resetting the password: $_" -ForegroundColor Red
 }
 
+# If PCNS logging registry value is set to verbose, asks user if they want to return to default logging capabilities.
 do {
     $loggingValueData = Get-ItemPropertyValue -Path $registryPath -Name $registryValueName
     if ($loggingValueData -eq "3"){
