@@ -1,0 +1,112 @@
+param(
+    [switch]$Logging,
+    [switch]$Reset
+)
+
+# Updates registry path to enable PCNS verbose logging
+if ($Logging) {
+    $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\PCNSSVC\Parameters"
+    $registryValueName = "EventLogLevel"
+    $registryValueData = "3"
+
+    # Checks if the registry path exists
+    try {
+        if (-not (Test-Path $registryPath)) {
+            New-Item -Path $registryPath -Force
+            Write-Host "New registry path to enable PCNS logging created" -ForegroundColor Green
+        }
+
+        # Sets the registry value to enable PCNS verbose logging
+        try {
+            $currentValueData = Get-ItemPropertyValue -Path $registryPath -Name $registryValueName
+            if($currentValueData -ne $registryValueData){
+                Set-ItemProperty -Path $registryPath -Name $registryValueName -Value $registryValueData
+                Write-Host "Registry value updated successfully to enable PCNS verbose logging" -ForegroundColor Green
+            } else {
+                Write-Host "Registry value to enable PCNS verbose logging already exists"
+            }
+        } catch {
+        Write-Host "An error occurred updating the registry value to enable PCNS verbose logging" -ForegroundColor Red
+        }
+
+    } catch {
+        Write-Host "An error occurred creating the registry path to enable PCNS logging" -ForegroundColor Red
+    }
+}
+
+# Resets the PCNS service to apply registry value change
+if ($Logging -or $Reset){
+    $ServiceName = "PCNSSVC"
+
+    try {
+        Write-Host "Stopping the service: $ServiceName"
+        Stop-Service -Name $ServiceName -Force
+        Write-Host "Starting the service: $ServiceName"
+        Start-Service -Name $ServiceName
+        Write-Host "Service $ServiceName has been reset successfully" -ForegroundColor Green
+    } catch {
+        Write-Host "An error occurred while restarting the PCNS service" -ForegroundColor Red
+    }
+}
+
+# Array containing event codes to check for, additional event codes can be added.
+$goodCodes = @(2100, 2201, 2302)
+$badCodes = @(4003, 4004, 4005, 6002, 6004, 6005, 6006, 6007, 4100, 4101)
+
+# Prompts user to enter username and password. 
+$username = Read-Host "Enter the username for which you want to reset the password"
+Write-Host "Enter the new password:"
+$newPassword = Read-Host -AsSecureString
+
+# Resets user's password.
+try {
+    $resetTime = Get-Date
+    $resetTime = $resetTime.AddMinutes(-1)
+
+    Set-ADAccountPassword -Identity $username -NewPassword $newPassword
+    Set-ADUser -Identity $username -PasswordNeverExpires $false
+    Write-Host "Password for user $username has been reset successfully." -ForegroundColor Green
+
+    # Pauses script to allow event codes to populate.
+    Start-Sleep -Seconds 5
+
+    # Checks event log for events that match event codes stored in arrays and outputs test results.
+    try {
+        $goodEvents = Get-EventLog -LogName Application | Where-Object { 
+            $goodCodes -contains $_.EventId -and $_.TimeGenerated -gt $resetTime
+        }
+
+        if ($goodEvents) {
+                Write-Host ""
+                Write-Host "Successful Event Codes:" -ForegroundColor Green
+                $goodEvents | ForEach-Object { 
+                    $message = $_.Message -split "`n" | Select-Object -First 1
+                    Write-Host "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $message" -ForegroundColor Green 
+                }
+        } else {
+            Write-Host ""
+            Write-Host "No relevant successful event codes were found." -ForegroundColor Red
+        }
+
+        $badEvents = Get-EventLog -LogName Application | Where-Object { 
+            $badCodes -contains $_.EventId -and $_.TimeGenerated -gt $resetTime
+        }
+
+        if ($badEvents) {
+                Write-Host ""
+                Write-Host "Failure Event Codes:" -ForegroundColor Red
+                $badEvents| ForEach-Object { 
+                    $message = $_.Message -split "`n" | Select-Object -First 1
+                    Write-Host "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $message" -ForegroundColor Red 
+                }
+        } else {
+            Write-Host ""
+            Write-Host "No relevant failure event codes were found." -ForegroundColor Green
+        }
+    } catch {
+        Write-Host ""
+        Write-Host "An error occurred while checking the Event Viewer: $_" -ForegroundColor Red
+    }
+} catch {
+    Write-Host "An error occurred while resetting the password: $_" -ForegroundColor Red
+}
