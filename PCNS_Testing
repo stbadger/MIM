@@ -49,9 +49,6 @@ if ($Logging -or $Reset){
     }
 }
 
-# Arrays containing success and fail event codes to check for, additional event codes can be added.
-$goodCodes = @(2100, 2201, 2302)
-$badCodes = @(4003, 4004, 4005, 6002, 6004, 6005, 6006, 6007, 4100, 4101)
 
 # Prompts user to enter username and password. 
 $username = Read-Host "Enter the username for which you want to reset the password"
@@ -71,38 +68,27 @@ try {
     Start-Sleep -Seconds 5
 
     try {
-        # Checks event log for identified success events and outputs test results.
-        $goodEvents = Get-EventLog -LogName Application | Where-Object { 
-            $goodCodes -contains $_.EventId -and $_.TimeGenerated -gt $resetTime
+        # Checks event log for identified PCNS events and outputs test results.
+        $Events = Get-EventLog -LogName Application | Where-Object { 
+            $_.Source -eq "PCNSSVC" -and $_.TimeGenerated -gt $resetTime
         }
 
-        if ($goodEvents) {
+        if ($Events) {
                 Write-Host ""
-                Write-Host "Successful Event Codes:" -ForegroundColor Green
-                $goodEvents | ForEach-Object { 
+                Write-Host "PCNS Event Codes:"
+                $Events | ForEach-Object { 
                     $message = $_.Message -split "`n" | Select-Object -First 1
-                    Write-Host "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $message" -ForegroundColor Green 
+                    if ($_.EntryType -eq "Information") {
+                        Write-Host "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $message" -ForegroundColor Green
+                    } elseif ($_.EntryType -eq "Warning") {
+                        Write-Host "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $message" -ForegroundColor Yellow
+                    } elseif ($_.EntryType -eq "Error") {
+                        Write-Host "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $message" -ForegroundColor Red
+                    }
                 }
         } else {
             Write-Host ""
-            Write-Host "No relevant successful event codes were found." -ForegroundColor Red
-        }
-
-        # Checks event log for identified fail events and outputs test results.
-        $badEvents = Get-EventLog -LogName Application | Where-Object { 
-            $badCodes -contains $_.EventId -and $_.TimeGenerated -gt $resetTime
-        }
-
-        if ($badEvents) {
-                Write-Host ""
-                Write-Host "Failure Event Codes:" -ForegroundColor Red
-                $badEvents| ForEach-Object { 
-                    $message = $_.Message -split "`n" | Select-Object -First 1
-                    Write-Host "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $message" -ForegroundColor Red 
-                }
-        } else {
-            Write-Host ""
-            Write-Host "No relevant failure event codes were found." -ForegroundColor Green
+            Write-Host "No relevant event codes were found." -ForegroundColor Red
         }
     } catch {
         Write-Host ""
