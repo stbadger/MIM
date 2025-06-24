@@ -93,9 +93,10 @@ try {
 }
 
 # If PCNS logging registry value is set to verbose, asks user if they want to return to default logging capabilities.
-do {
-    $loggingValueData = Get-ItemPropertyValue -Path $registryPath -Name $registryValueName
-    if ($loggingValueData -eq "3"){
+$loggingValueData = Get-ItemPropertyValue -Path $registryPath -Name $registryValueName
+if ($loggingValueData -eq "3"){
+
+    do {
         Write-Host ""
         $loggingReset = Read-Host "Currently PCNS logging is set to verbose mode in the registry, return to default logging (Y/N)?"
         try {
@@ -113,5 +114,5 @@ do {
         } catch {
             Write-Host "An error occurred updating the registry value to enable default PCNS logging" -ForegroundColor Red
         }
-    }
-} until ($validInput)
+    } until ($validInput)
+}
