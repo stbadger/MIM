@@ -57,7 +57,7 @@ try {
     # Resets user's password.
     Set-ADAccountPassword -Identity $username -NewPassword $newPassword
     Set-ADUser -Identity $username -PasswordNeverExpires $false
-    Write-Host "Password for user $username has been reset successfully." -ForegroundColor Green
+    Write-Host "Password for user $username has been reset successfully" -ForegroundColor Green
 
     # Pauses script to allow event codes to populate.
     Start-Sleep -Seconds 5
