@@ -2,27 +2,27 @@ param(
     [switch]$Logging
 )
 
-# Updates registry path to enable PCNS verbose logging
+# Updates registry path to enable PCNS verbose logging if -Logging switch is used.
 if ($Logging) {
     $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\PCNSSVC\Parameters"
     $registryValueName = "EventLogLevel"
     $registryValueData = "3"
 
-    # Checks if the registry path exists
+    # Creates required registry path if it does not exist.
     try {
         if (-not (Test-Path $registryPath)) {
             New-Item -Path $registryPath -Force
             Write-Host "New registry path to enable PCNS logging created" -ForegroundColor Green
         }
 
-        # Sets the registry value to enable PCNS verbose logging
+        # Sets the registry value to enable PCNS verbose logging.
         try {
             $currentValueData = Get-ItemPropertyValue -Path $registryPath -Name $registryValueName
             if($currentValueData -ne $registryValueData){
                 Set-ItemProperty -Path $registryPath -Name $registryValueName -Value $registryValueData
                 Write-Host "Registry value updated successfully to enable PCNS verbose logging" -ForegroundColor Green
 
-                # Resets the PCNS service to apply registry value change
+                # Resets the PCNS service to apply registry value change.
                 $ServiceName = "PCNSSVC"
                 try {
                     Write-Host "Stopping the service: $ServiceName"
@@ -39,7 +39,6 @@ if ($Logging) {
         } catch {
         Write-Host "An error occurred updating the registry value to enable PCNS verbose logging" -ForegroundColor Red
         }
-
     } catch {
         Write-Host "An error occurred creating the registry path to enable PCNS logging" -ForegroundColor Red
     }
@@ -50,11 +49,12 @@ $username = Read-Host "Enter the username for which you want to reset the passwo
 Write-Host "Enter the new password:"
 $newPassword = Read-Host -AsSecureString
 
-# Resets user's password.
 try {
+    # Records time to use when filtering event codes.
     $resetTime = Get-Date
     $resetTime = $resetTime.AddMinutes(-1)
 
+    # Resets user's password.
     Set-ADAccountPassword -Identity $username -NewPassword $newPassword
     Set-ADUser -Identity $username -PasswordNeverExpires $false
     Write-Host "Password for user $username has been reset successfully." -ForegroundColor Green
@@ -62,12 +62,11 @@ try {
     # Pauses script to allow event codes to populate.
     Start-Sleep -Seconds 5
 
+    # Checks event log for identified PCNS events and outputs test results.
     try {
-        # Checks event log for identified PCNS events and outputs test results.
         $Events = Get-EventLog -LogName Application | Where-Object { 
             $_.Source -eq "PCNSSVC" -and $_.TimeGenerated -gt $resetTime
         }
-
         if ($Events) {
                 Write-Host ""
                 Write-Host "PCNS Event Codes:"
