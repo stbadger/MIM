@@ -91,3 +91,26 @@ try {
 } catch {
     Write-Host "An error occurred while resetting the password: $_" -ForegroundColor Red
 }
+
+do {
+    $loggingValueData = Get-ItemPropertyValue -Path $registryPath -Name $registryValueName
+    if ($loggingValueData -eq "3"){
+        Write-Host ""
+        $loggingReset = Read-Host "Currently PCNS logging is set to verbose mode in the registry, return to default logging (Y/N)?"
+        try {
+            if ($loggingReset -eq "Y" -or $loggingReset -eq "y"){
+                Set-ItemProperty -Path $registryPath -Name $registryValueName -Value "1"
+                Write-Host "Registry value updated successfully to disable PCNS verbose logging" -ForegroundColor Green
+                $validInput = $true
+            } elseif ($loggingReset -eq "N" -or $loggingReset -eq "n"){
+                Write-Host "Registry value has not been updated, PCNS verbose logging remains enabled" -ForegroundColor Green
+                $validInput = $true
+            } else {
+                Write-Host "Invalid input, please enter Y or N" -ForegroundColor Red
+                $validInput = $false
+            }
+        } catch {
+            Write-Host "An error occurred updating the registry value to enable default PCNS logging" -ForegroundColor Red
+        }
+    }
+} until ($validInput)
