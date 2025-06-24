@@ -2,12 +2,13 @@ param(
     [switch]$Logging
 )
 
+$registryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\PCNSSVC\Parameters"
+$registryValueName = "EventLogLevel"
+$registryValueData = "3"
+
 # Updates registry path to enable PCNS verbose logging if -Logging switch is used.
 if ($Logging) {
-    $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\PCNSSVC\Parameters"
-    $registryValueName = "EventLogLevel"
-    $registryValueData = "3"
-
+    
     # Creates required registry path if it does not exist.
     try {
         if (-not (Test-Path $registryPath)) {
