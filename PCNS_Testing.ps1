@@ -1,13 +1,13 @@
-param(
-    [switch]$Logging
-)
+#param(
+#    [switch]$Logging
+#)
 
 $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\PCNSSVC\Parameters"
 $registryValueName = "EventLogLevel"
 $registryValueData = "3"
 
 # Updates registry path to enable PCNS verbose logging if -Logging switch is used.
-if ($Logging) {
+#if ($Logging) {
     
     # Creates required registry path if it does not exist.
     try {
@@ -43,7 +43,7 @@ if ($Logging) {
     } catch {
         Write-Host "An error occurred creating the registry path to enable PCNS logging" -ForegroundColor Red
     }
-}
+#}
 
 # Prompts user to enter username and password. 
 $username = Read-Host "Enter the username for which you want to reset the password"
