@@ -46,7 +46,7 @@ foreach ($t in $testUsers){
         
         Write-Host "$agency $t user account has been successfully created"
     }catch {
-        Write-Host "There was an issue creating the $agency $t user account."
+        Write-Host "There was an issue creating the $agency $t user account"
     }
 }
 
@@ -58,8 +58,10 @@ try {
         Start-Service -Name "PCNSSVC"
 
         Get-CimInstance -ClassName Win32_Service -Filter "Name='PCNSSVC'" | 
-        Select-Object PSComputerName, Name, StartMode
+        Select-Object PSComputerName, Name, StartMode, State
     }
+
+    Write-Host "PCNS services on all domain controllers have been succesfully started and set to automatic startup type"
 } catch{
     Write-host "There was an issue starting and setting startup type for the PCNS service"
 }
