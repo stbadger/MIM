@@ -56,12 +56,15 @@ try {
     Invoke-Command -ComputerName $DCs -ScriptBlock {
         Set-Service -Name "PCNSSVC" -StartupType Automatic
         Start-Service -Name "PCNSSVC"
-
-        Get-CimInstance -ClassName Win32_Service -Filter "Name='PCNSSVC'" | 
-        Select-Object PSComputerName, Name, StartMode, State
     }
 
+    $results = Invoke-Command -ComputerName $DCs -ScriptBlock {
+        Get-CimInstance -ClassName Win32_Service -Filter "Name='PCNSSVC'" | 
+        Select-Object PSComputerName, Name, StartMode, State
+    } 
+    
     Write-Host "PCNS services on all domain controllers have been succesfully started and set to automatic startup type"
+    $results | Select-Object PSComputerName, Name, StartMode, State
 } catch{
     Write-host "There was an issue starting and setting startup type for the PCNS service"
 }
