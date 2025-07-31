@@ -50,7 +50,7 @@ foreach ($t in $testUsers){
     }
 }
 
-#Starts PCNS service and sets startup type to auto for all DCs in AD.
+#Starts PCNS service and sets startup type to automatic for all DCs in AD.
 try {
     $DCs = Get-ADDomainController -Filter * | Select-Object -ExpandProperty HostName
     Invoke-Command -ComputerName $DCs -ScriptBlock {
