@@ -34,7 +34,7 @@ foreach ($t in $testUsers){
             -GivenName $agency `
             -Surname "$t" `
             -SamAccountName $identity `
-            -AccountPassword (Read-Host "Enter password" -AsSecureString) `
+            -AccountPassword (Read-Host "Enter password for $agency $t" -AsSecureString) `
             -Path (Get-ADOrganizationalUnit -Filter 'Name -eq "MIM-Test"').DistinguishedName `
             -Enabled $true `
             -Description $description `
