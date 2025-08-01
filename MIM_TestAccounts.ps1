@@ -5,12 +5,12 @@ $testUsers = @("MIM Test1", "MIM Test2", "PCNS Test1", "PCNS Test2")
 
 #Creates the test OU that will be used to scope testing to only include test user accounts.
 try{
-    New-ADOrganizationalUnit -Name "MIM-Test" -Path (Get-ADDomain).DistinguishedName -Description "This OU contains test user accounts for the State's MIM deployment." -ProtectedFromAccidentalDeletion $false
+    New-ADOrganizationalUnit -Name "MIM-Test" -Path (Get-ADDomain).DistinguishedName -Description "This OU contains test user accounts for the 2025 State's MIM deployment." -ProtectedFromAccidentalDeletion $false
 } catch {
     if (Get-ADOrganizationalUnit -Filter 'Name -eq "MIM-Test"'){
-        Write-Host "The MIM-Test OU already exists"
+        Write-Host "The MIM-Test OU already exists."
     } else{
-        Write-Host "There was an issue creating the MIM-Test OU"
+        Write-Host "There was an issue creating the MIM-Test OU."
         exit
     }
 }
@@ -44,9 +44,9 @@ foreach ($t in $testUsers){
             Set-ADUser -Identity $identity -Replace @{otherHomePhone="$identity@maryland.gov"}
         }
         
-        Write-Host "$agency $t user account has been successfully created"
+        Write-Host "The $agency $t user account has been successfully created."
     }catch {
-        Write-Host "There was an issue creating the $agency $t user account"
+        Write-Host "There was an issue creating the $agency $t user account, please review Active Directory and and error logging to troubleshoot the root cause of this failure."
     }
 }
 
@@ -63,8 +63,8 @@ try {
         Select-Object PSComputerName, Name, StartMode, State
     } 
     
-    Write-Host "PCNS services on all domain controllers have been succesfully started and set to automatic startup type"
+    Write-Host "PCNS services on all domain controllers have been succesfully started, and set to the Automatic startup type."
     $results | Select-Object PSComputerName, Name, StartMode, State
 } catch{
-    Write-host "There was an issue starting and setting startup type for the PCNS service"
+    Write-host "There was an issue starting and setting startup type for the PCNS service."
 }
