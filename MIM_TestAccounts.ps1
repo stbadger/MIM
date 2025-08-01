@@ -5,7 +5,7 @@ $testUsers = @("MIM Test1", "MIM Test2", "PCNS Test1", "PCNS Test2")
 
 #Creates the test OU that will be used to scope testing to only include test user accounts.
 try{
-    New-ADOrganizationalUnit -Name "MIM-Test" -Path (Get-ADDomain).DistinguishedName -Description "This is OU contains MIM test user accounts"
+    New-ADOrganizationalUnit -Name "MIM-Test" -Path (Get-ADDomain).DistinguishedName -Description "This OU contains test user accounts for the State's MIM deployment." -ProtectedFromAccidentalDeletion $false
 } catch {
     if (Get-ADOrganizationalUnit -Filter 'Name -eq "MIM-Test"'){
         Write-Host "The MIM-Test OU already exists"
@@ -20,10 +20,10 @@ $agency = Read-Host "Please enter your agency's acronym"
 #Creates required MIM test accounts.
 foreach ($t in $testUsers){
     switch ($t) {
-        "MIM Test1" {$description = "Legacy MDgov"}
-        "MIM Test2" {$description = "Net new"}
-        "PCNS Test1" {$description = "Legacy MDgov"}
-        "PCNS Test2" {$description = "Net new"}
+        "MIM Test1" {$description = "This test user represents an existing user in the MDgov AD."}
+        "MIM Test2" {$description = "This test user represents an identity that does not yet exist in the MDgov AD."}
+        "PCNS Test1" {$description = "This test user represents an existing user in the MDgov AD."}
+        "PCNS Test2" {$description = "This test user represents an identity that does not yet exist in the MDgov AD."}
     }
 
     $identity = ($agency + "." + ($t -replace ' ','')).ToLower()
@@ -36,7 +36,7 @@ foreach ($t in $testUsers){
             -SamAccountName $identity `
             -AccountPassword (Read-Host "Enter password" -AsSecureString) `
             -Path (Get-ADOrganizationalUnit -Filter 'Name -eq "MIM-Test"').DistinguishedName `
-            -Enabled $false `
+            -Enabled $true `
             -Description $description `
             -ChangePasswordAtLogon $false
 
