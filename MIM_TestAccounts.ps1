@@ -8,7 +8,8 @@ $testContainers = @("Enabled", "In-Scope", "Out-of-Scope")
 
 #Creates the test OU that will be used to scope testing to only include test user accounts.
 try{
-    New-ADOrganizationalUnit -Name "MIM-Test" `
+    New-ADOrganizationalUnit `
+    -Name "MIM-Test" `
     -Path (Get-ADDomain).DistinguishedName `
     -Description "This OU contains test user accounts for the 2025 State's MIM deployment." `
     -ProtectedFromAccidentalDeletion $false
