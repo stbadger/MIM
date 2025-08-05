@@ -8,26 +8,22 @@ $testContainers = @("Enabled", "In-Scope", "Out-of-Scope")
 
 #Creates the test OU that will be used to scope testing to only include test user accounts.
 try{
-    New-ADOrganizationalUnit `
-    -Name "MIM-Test" `
-    -Path (Get-ADDomain).DistinguishedName `
-    -Description "This OU contains test user accounts for the 2025 State's MIM deployment." `
-    -ProtectedFromAccidentalDeletion $false
+    New-ADOrganizationalUnit -Name "MIM-Test" -Path (Get-ADDomain).DistinguishedName -Description "This OU contains test user accounts for the 2025 State's MIM deployment." -ProtectedFromAccidentalDeletion $false
     $parentOU = (Get-ADOrganizationalUnit -Filter 'Name -eq "MIM-Test"').DistinguishedName
-    Write-Host "The MIM-Test OU has been successfully created."
+    Write-Host "The MIM-Test OU has been successfully created." -ForegroundColor Green
 
     foreach ($t in $testContainers){
         New-ADOrganizationalUnit `
-        -Name $t `
+        -Name "$t" `
         -Path $parentOU `
         -ProtectedFromAccidentalDeletion $false 
-        Write-Host "The $t subcontainer in the MIM-Test OU has been successfully created."
+        Write-Host "The $t subcontainer in the MIM-Test OU has been successfully created." -ForegroundColor Green
     }
 } catch {
     if (Get-ADOrganizationalUnit -Filter 'Name -eq "MIM-Test"'){
-        Write-Host "The MIM-Test OU already exists."
+        Write-Host "The MIM-Test OU already exists." -ForegroundColor Yellow
     } else{
-        Write-Host "There was an issue creating the MIM-Test OU."
+        Write-Host "There was an issue creating the MIM-Test OU." -ForegroundColor Red
         exit
     }
 }
@@ -49,7 +45,7 @@ foreach ($t in $testUsers){
         New-ADUser `
             -Name "$agency $t" `
             -GivenName $agency `
-            -Surname $t `
+            -Surname "$t" `
             -SamAccountName $identity `
             -AccountPassword (Read-Host "Enter password for $agency $t" -AsSecureString) `
             -Path (Get-ADOrganizationalUnit -Filter 'Name -eq "Enabled"' -SearchBase $parentOU).DistinguishedName `
@@ -61,9 +57,9 @@ foreach ($t in $testUsers){
             Set-ADUser -Identity $identity -Replace @{otherHomePhone="$identity@maryland.gov"}
         }
         
-        Write-Host "The $agency $t user account has been successfully created."
+        Write-Host "The $agency $t user account has been successfully created." -ForegroundColor Green
     }catch {
-        Write-Host "There was an issue creating the $agency $t user account, please review Active Directory and and error logging to troubleshoot the root cause of this failure."
+        Write-Host "There was an issue creating the $agency $t user account, please review Active Directory and and error logging to troubleshoot the root cause of this failure." -ForegroundColor Red
     }
 }
 
@@ -80,8 +76,8 @@ try {
         Select-Object PSComputerName, Name, StartMode, State
     } 
     
-    Write-Host "PCNS services on all domain controllers have been succesfully started, and set to the Automatic startup type."
+    Write-Host "PCNS services on all domain controllers have been succesfully started, and set to the Automatic startup type." -ForegroundColor Green
     $results | Select-Object PSComputerName, Name, StartMode, State
 } catch{
-    Write-host "There was an issue starting and setting startup type for the PCNS service."
+    Write-host "There was an issue starting and setting startup type for the PCNS service." -ForegroundColor Red
 }
