@@ -18,7 +18,7 @@ try{
 
     foreach ($t in $testContainers){
         New-ADOrganizationalUnit `
-        -Name "$t" `
+        -Name $t `
         -Path $parentOU `
         -ProtectedFromAccidentalDeletion $false 
         Write-Host "The $t subcontainer in the MIM-Test OU has been successfully created."
@@ -49,7 +49,7 @@ foreach ($t in $testUsers){
         New-ADUser `
             -Name "$agency $t" `
             -GivenName $agency `
-            -Surname "$t" `
+            -Surname $t `
             -SamAccountName $identity `
             -AccountPassword (Read-Host "Enter password for $agency $t" -AsSecureString) `
             -Path (Get-ADOrganizationalUnit -Filter 'Name -eq "Enabled"' -SearchBase $parentOU).DistinguishedName `
