@@ -1,3 +1,5 @@
+Import-Module ActiveDirectory
+
 #Establishes the different required subcontainers for testing.
 $testContainers = @("Enabled", "In-Scope", "Out-of-Scope")
 
