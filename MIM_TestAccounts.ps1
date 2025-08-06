@@ -13,11 +13,15 @@ try{
     Write-Host "The MIM-Test OU has been successfully created." -ForegroundColor Green
 
     foreach ($t in $testContainers){
-        New-ADOrganizationalUnit `
-        -Name "$t" `
-        -Path $parentOU `
-        -ProtectedFromAccidentalDeletion $false 
-        Write-Host "The $t subcontainer in the MIM-Test OU has been successfully created." -ForegroundColor Green
+        try{
+            New-ADOrganizationalUnit `
+            -Name "$t" `
+            -Path $parentOU `
+            -ProtectedFromAccidentalDeletion $false 
+            Write-Host "The $t subcontainer in the MIM-Test OU has been successfully created." -ForegroundColor Green
+        } catch {
+            Write-Host "There was an issue creating the subcontainer $t in the MIM-Test OU." -ForegroundColor Red
+        }
     }
 } catch {
     if (Get-ADOrganizationalUnit -Filter 'Name -eq "MIM-Test"'){
