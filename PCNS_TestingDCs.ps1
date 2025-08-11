@@ -23,6 +23,7 @@ param($registryPath, $registryValueName, $registryValueData, $username)
     
     # In-line output indicating which domain controller is currently conducting PCNS validation testting.
     Write-Host "Conducting PCNS Validation Testing on DC: $env:COMPUTERNAME IP: $IP" -ForegroundColor DarkYellow
+    Write-Output "$env:COMPUTERNAME,$IP"
 
     # Creates required registry path for PCNS verbose logging if it does not exist.
     try {
@@ -86,28 +87,28 @@ param($registryPath, $registryValueName, $registryValueData, $username)
                 $_.Source -eq "PCNSSVC" -and $_.TimeGenerated -gt $resetTime
             }
             if ($Events) {
-                    Write-Output "DC: $env:COMPUTERNAME IP: $IP"
+                    Write-Output "Time,Event ID,Description"
                     $Events | ForEach-Object { 
                         $message = $_.Message -split "`n" | Select-Object -First 1
                         if ($_.EntryType -eq "Information") {
-                            Write-Output "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $($message.Trim())"
+                            Write-Output "$($_.TimeGenerated),$($_.EventId),$($message.Trim())"
                             if ($_.EventID -eq "2100") {
                                 Write-Host "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $($message.Trim())" -ForegroundColor Green
                             }
                         } elseif ($_.EntryType -eq "Warning") {
-                            Write-Output "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $($message.Trim())"
+                            Write-Output "$($_.TimeGenerated),$($_.EventId),$($message.Trim())"
                         } elseif ($_.EntryType -eq "Error") {
-                            Write-Output "Time: $($_.TimeGenerated), Event ID: $($_.EventId), $($message.Trim())"
+                            Write-Output "$($_.TimeGenerated),$($_.EventId),$($message.Trim())"
                         }
                     }
             } else {
                 Write-Output "No relevant event codes were found."
             }
         } catch {
-            Write-Output "An error occurred while checking the Event Viewer: $_"
+            Write-Output "An error occurred while checking the Event Viewer:,$_"
         }
     } catch {
-        Write-Output "An error occurred while resetting the password: $_"
+        Write-Output "An error occurred while resetting the password:,$_"
     }
 
     # Resets registry value to disable PCNS verbose logging.
@@ -128,4 +129,4 @@ param($registryPath, $registryValueName, $registryValueData, $username)
 } 
 
 # Runs script block on each domain controller in Active Directory and outputs test results to a local text file.
-$results = Invoke-Command -ComputerName $DCs -ScriptBlock $scriptBlock -ArgumentList $registryPath, $registryValueName, $registryValueData, $username | Out-File "C:\Temp\PCNS_Test.txt"
+$results = Invoke-Command -ComputerName $DCs -ScriptBlock $scriptBlock -ArgumentList $registryPath, $registryValueName, $registryValueData, $username | Out-File "C:\Temp\PCNS_Test.csv"
