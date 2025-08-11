@@ -1,3 +1,7 @@
+# Establishes list of domain controllers that will be tested.
+$domainName = Read-Host "Enter your domain name"
+$DCs = Get-ADDomainController -discover -domain $domainName | Select-Object -ExpandProperty HostName
+
 # Establishes user that will be used for PCNS valication testing.
 $username = Read-Host "Enter the username for which you want to reset the password"
 Write-Host ""
@@ -6,9 +10,6 @@ Write-Host ""
 $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\PCNSSVC\Parameters"
 $registryValueName = "EventLogLevel"
 $registryValueData = "3"
-
-# Establishes list of domain controllers that will be tested.
-$DCs = Get-ADDomainController -Filter * | Select-Object -ExpandProperty HostName
 
 # Contains the script that will be executed on each domain controller in the Invoke-Command.
 $scriptBlock = {
