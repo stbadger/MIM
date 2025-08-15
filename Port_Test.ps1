@@ -1,7 +1,7 @@
 # Test network connectivity to an angecy's domain controller by entering the known SwGi IP address as defined in the $remoteIP parameter:
 #
 # Define the IP address of the remote domain/forest
-$remoteIP = "10.84.9.13" # Change this to the IP address you want to test
+$remoteIP = "10.84.9.11" # Change this to the IP address you want to test
 
 # Define the list of ports to test
 $ports = @(53, 88, 135, 389, 445, 464, 636, 3268, 3269)
