@@ -2,7 +2,7 @@ Import-Module ActiveDirectory
 
 # Establishes list of domain controllers that will be tested.
 $domainName = Read-Host "Enter your domain name"
-$DCs = Get-ADDomainController -discover -domain $domainName | Select-Object -ExpandProperty HostName
+$DCs = Get-ADDomainController -filter * -server $domainName | Select-Object -ExpandProperty HostName
 
 # Establishes user that will be used for PCNS valication testing.
 $username = Read-Host "Enter the username for which you want to reset the password"
