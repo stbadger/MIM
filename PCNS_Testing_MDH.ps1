@@ -36,7 +36,11 @@ if (-not (Test-Path $outputPath)) {
     New-Item -Path $outputPath -ItemType File
 }
 
-$output += "`n" + $env:COMPUTERNAME
+$IP = Get-NetIPAddress -AddressFamily IPv4 | Where-Object {
+        $_.IPAddress -ne "127.0.0.1" -and $_.IPAddress -notlike "169.254*"
+    } | Select-Object -ExpandProperty IPAddress
+
+$output += "`n" + $env:COMPUTERNAME + " " + $IP
 
 # Conducts PCNS validation testing and formats outputted test results.
 try {
