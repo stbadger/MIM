@@ -25,15 +25,15 @@ function Generate-ComplexPassword {
 $username = "default"
 
 # Hard coded file path to a txt file where the testing results will be outputted to, needs to be accessible by all DCs.
-$outputPath = "default"
+$filePath = "default"
 
 $NewPassword = Generate-ComplexPassword
 $output = ""
 $service = "PCNSSVC"
 
 # Creates txt file to output test results to if it does not already exist.
-if (-not (Test-Path $outputPath)) {
-    New-Item -Path $outputPath -ItemType File
+if (-not (Test-Path $filePath)) {
+    New-Item -Path $filePath -ItemType File
 }
 
 $IP = Get-NetIPAddress -AddressFamily IPv4 | Where-Object {
@@ -89,4 +89,4 @@ try {
     $output += "`n" + "An error occurred while starting the PCNS service"
 }
 
-$output | Out-File -FilePath $outputPath -Encoding UTF8 -Append
+$output | Out-File -FilePath $filePath -Encoding UTF8 -Append
