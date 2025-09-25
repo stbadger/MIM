@@ -29,6 +29,7 @@ $outputPath = "default"
 
 $NewPassword = Generate-ComplexPassword
 $output = ""
+$service = "PCNSSVC"
 
 # Creates txt file to output test results to if it does not already exist.
 if (-not (Test-Path $outputPath)) {
@@ -40,7 +41,7 @@ $output += "`n" + $env:COMPUTERNAME
 # Conducts PCNS validation testing and formats outputted test results.
 try {
     if ($service.Status -ne "Running"){
-        Start-Service -Name "PCNSSVC"
+        Start-Service -Name $service
         Start-Sleep -Seconds 5
     }
     try { 
