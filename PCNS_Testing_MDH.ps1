@@ -22,10 +22,10 @@ function Generate-ComplexPassword {
 }
 
 # Hard coded sAMAccountName, PCNS validation testing will involve resetting this user's password on each DC.
-$username = "doug.williams"
+$username = "default"
 
 # Hard coded file path to a txt file where the testing results will be outputted to, needs to be accessible by all DCs.
-$outputPath = "C:\Temp\PCNS_Test_MDHv3.txt"
+$outputPath = "default"
 
 $NewPassword = Generate-ComplexPassword
 $output = ""
@@ -54,7 +54,11 @@ try {
             $Events | ForEach-Object {
                 $message = $_.Message -split "`n" | Select-Object -First 1
                 if ($_.EntryType -eq "Information") {
-                    $output += "`n" + "[$($_.EntryType)] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
+                    if ($_.EventID -eq "2100"){
+                        $output += "`n" + "[Success] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
+                    } else {
+                        $output += "`n" + "[$($_.EntryType)] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
+                    }
                 } elseif ($_.EntryType -eq "Warning") {
                     $output += "`n" + "[$($_.EntryType)] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
                 } elseif ($_.EntryType -eq "Error") {
