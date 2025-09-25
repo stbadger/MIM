@@ -35,44 +35,53 @@ if (-not (Test-Path $outputPath)) {
     New-Item -Path $outputPath -ItemType File
 }
 
+$output += "`n" + $env:COMPUTERNAME
+
 # Conducts PCNS validation testing and formats outputted test results.
 try {
-    $output += "`n" + $env:COMPUTERNAME
-    $resetTime = (Get-Date).AddMinutes(-1)
+    if ($service.Status -ne "Running"){
+        Start-Service -Name "PCNSSVC"
+        Start-Sleep -Seconds 5
+    }
+    try { 
+        $resetTime = (Get-Date).AddMinutes(-1)
 
-    Set-ADAccountPassword -Identity $username -NewPassword (ConvertTo-SecureString $NewPassword -AsPlainText -Force)
-    Set-ADUser -Identity $username -PasswordNeverExpires $false
-    $output += "`n" + "Password reset successful for $username"
+        Set-ADAccountPassword -Identity $username -NewPassword (ConvertTo-SecureString $NewPassword -AsPlainText -Force)
+        Set-ADUser -Identity $username -PasswordNeverExpires $false
+        $output += "`n" + "Password reset successful for $username"
 
-    Start-Sleep -Seconds 5
-    try {
-        $Events = Get-EventLog -LogName Application | Where-Object {
-            $_.Source -eq "PCNSSVC" -and $_.TimeGenerated -gt $resetTime
-        }
-        if ($Events) {
-            $output += "`n" + "PCNS Event Codes:"
-            $Events | ForEach-Object {
-                $message = $_.Message -split "`n" | Select-Object -First 1
-                if ($_.EntryType -eq "Information") {
-                    if ($_.EventID -eq "2100"){
-                        $output += "`n" + "[Success] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
-                    } else {
+        Start-Sleep -Seconds 5
+        try {
+            $Events = Get-EventLog -LogName Application | Where-Object {
+                $_.Source -eq "PCNSSVC" -and $_.TimeGenerated -gt $resetTime
+            }
+            if ($Events) {
+                $output += "`n" + "PCNS Event Codes:"
+                $Events | ForEach-Object {
+                    $message = $_.Message -split "`n" | Select-Object -First 1
+                    if ($_.EntryType -eq "Information") {
+                        if ($_.EventID -eq "2100"){
+                            $output += "`n" + "[Success] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
+                        } else {
+                            $output += "`n" + "[$($_.EntryType)] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
+                        }
+                    } elseif ($_.EntryType -eq "Warning") {
+                        $output += "`n" + "[$($_.EntryType)] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
+                    } elseif ($_.EntryType -eq "Error") {
                         $output += "`n" + "[$($_.EntryType)] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
                     }
-                } elseif ($_.EntryType -eq "Warning") {
-                    $output += "`n" + "[$($_.EntryType)] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
-                } elseif ($_.EntryType -eq "Error") {
-                    $output += "`n" + "[$($_.EntryType)] $($_.TimeGenerated), Event ID: $($_.EventId), $message"
                 }
+            } else {
+                $output += "`n" + "No relevant event codes were found."
             }
-        } else {
-            $output += "`n" + "No relevant event codes were found."
+        } catch {
+            $output += "`n" + "An error occurred while checking the Event Viewer for PCNS event codes"
         }
     } catch {
-        $output += "`n" + "An error occurred while checking the Event Viewer for PCNS event codes"
+        $output += "`n" + "An error occurred while resetting the password for $username"
     }
 } catch {
-    $output += "`n" + "An error occurred while resetting the password for $username"
+    $output += "`n" + "An error occurred while starting the PCNS service"
 }
 
 $output | Out-File -FilePath $outputPath -Encoding UTF8 -Append
