@@ -13,13 +13,16 @@ $resetTime = $resetTime.AddMinutes(-1)
 foreach($t in $testUsers){
 
     # Establishes credentials to be used for password hash test.
-    $username = (Get-ADUser -Filter "sAMAccountName -like '*$t'" -Properties sAMAccountName).SamAccountName
-    $newPassword = Read-Host "Enter the new password for $username" -AsSecureString
+    $user = Get-ADUser -Filter "sAMAccountName -like '*$t'" -Properties sAMAccountName
+    if($user.DistinguishedName -like "*OU=MIM-Test*"){
+        $username = $user.SamAccountName
+        $newPassword = Read-Host "Enter the new password for $username" -AsSecureString
 
-    # Resets user's password.
-    Set-ADAccountPassword -Identity $username -NewPassword $newPassword
-    Set-ADUser -Identity $username -PasswordNeverExpires $false
-    Write-Host "Password for user $username has been reset successfully" -ForegroundColor Yellow
+        # Resets user's password.
+        Set-ADAccountPassword -Identity $username -NewPassword $newPassword
+        Set-ADUser -Identity $username -PasswordNeverExpires $false
+        Write-Host "Password for user $username has been reset successfully" -ForegroundColor Yellow
+    }
 }
 
 Start-Sleep -Seconds 5
